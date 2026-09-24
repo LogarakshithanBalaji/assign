@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+    
+    parameters {
+        string(name: 'STUDENT_COUNT', defaultValue: '45', description: 'Number of students to log in the report')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code...'
+                checkout scm
+            }
+        }
+
+        stage('Generate Report') {
+            environment {
+                STUDENT_COUNT = "${params.STUDENT_COUNT}"
+            }
+            steps {
+                echo "=============================="
+                echo "BUILD NUMBER: ${env.BUILD_NUMBER}"
+                echo "JOB NAME: ${env.JOB_NAME}"
+                echo "WORKSPACE: ${env.WORKSPACE}"
+                echo "=============================="
+                
+                echo 'Running app.py to generate report...'
+                sh 'python3 app.py'
+            }
+        }
+
+        stage('Archive Report') {
+            steps {
+                echo 'Archiving the generated report...'
+                archiveArtifacts artifacts: 'build_report.txt', fingerprint: true
+            }
+        }
+    }
+}
